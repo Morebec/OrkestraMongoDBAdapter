@@ -1,5 +1,5 @@
 {
-    "name": "morebec/orkestra-mongo-db-adapter",
+    "name": "morebec/orkestra-mongodb-adapter",
     "description": "Mongo DB adapter for Orkestra",
     "type": "library",
     "authors": [
