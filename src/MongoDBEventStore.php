@@ -8,8 +8,8 @@ use Morebec\DomainNormalizer\Denormalization\Configuration\DenormalizerConfigura
 use Morebec\DomainNormalizer\Denormalization\Denormalizer;
 use Morebec\DomainNormalizer\Normalization\Configuration\NormalizerConfiguration;
 use Morebec\DomainNormalizer\Normalization\Normalizer;
-use Morebec\Monito\OrkestraMongoDBAdapter\Normalization\EventDescriptorNormalizationFactory;
-use Morebec\Monito\OrkestraMongoDBAdapter\Normalization\EventNormalizationFactory;
+use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventDescriptorNormalizationFactory;
+use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventNormalizationFactory;
 use Morebec\Orkestra\EventSourcing\EventStore\EventDescriptor;
 use Morebec\Orkestra\EventSourcing\EventStore\EventStoreInterface;
 use Morebec\Orkestra\EventSourcing\EventStreamVersionMismatchException;
