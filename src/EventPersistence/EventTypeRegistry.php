@@ -13,6 +13,11 @@ class EventTypeRegistry
         $this->map = [];
     }
 
+    public function preload(array $data): void
+    {
+        $this->map = $data;
+    }
+
     /**
      * Registeres an event type.
      *
@@ -29,7 +34,7 @@ class EventTypeRegistry
      *
      * @throws ReflectionException
      */
-    public function unregisterEventType(string $eventFqn)
+    public function unregisterEventType(string $eventFqn): void
     {
         if (!$this->isEventTypeRegistered($eventFqn)) {
             throw new InvalidArgumentException('Event $eventFqn was not registered');
@@ -49,11 +54,11 @@ class EventTypeRegistry
     }
 
     /**
-     * @return mixed
+     * @return string
      *
      * @throws InvalidArgumentException
      */
-    public function resolveFQN(string $shortName)
+    public function resolveFQN(string $shortName): string
     {
         if (!array_key_exists($shortName, $this->map)) {
             throw new InvalidArgumentException("Cannot resolve $shortName");
