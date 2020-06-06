@@ -55,7 +55,7 @@ class MongoDBEventStore implements EventStoreInterface
         $streamVersion = $this->findEventStreamVersion($streamName);
 
         // Concurrency check
-        if ($streamVersion !== $expectedVersion) {
+        if ($streamVersion !== $expectedVersion && $streamVersion !== -1) {
             throw new EventStreamVersionMismatchException($streamName, $expectedVersion, $streamVersion);
         }
 
