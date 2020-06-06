@@ -1,6 +1,6 @@
 <?php
 
-namespace Morebec\Orkestra\Adapter\MongoDB\Normalization;
+namespace Morebec\Orkestra\Adapter\MongoDB\EventPersistence;
 
 use DateTime as PHPDateTime;
 use Morebec\DateTime\DateTime;

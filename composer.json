@@ -23,5 +23,10 @@
         "psr-4": {
             "Morebec\\Orkestra\\Adapter\\MongoDB\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Test\\Morebec\\Orkestra\\Adapter\\MongoDB\\": "src/"
+        }
     }
 }

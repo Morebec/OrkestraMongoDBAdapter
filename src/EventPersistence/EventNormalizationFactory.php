@@ -1,6 +1,6 @@
 <?php
 
-namespace Morebec\Orkestra\Adapter\MongoDB\Normalization;
+namespace Morebec\Orkestra\Adapter\MongoDB\EventPersistence;
 
 use Morebec\DateTime\DateTime;
 use Morebec\DomainNormalizer\Denormalization\Configuration\AutomaticDenormalizationDefinition;

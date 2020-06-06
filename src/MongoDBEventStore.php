@@ -4,12 +4,10 @@ namespace Morebec\Orkestra\Adapter\MongoDB;
 
 use MongoDB\Collection;
 use MongoDB\Model\BSONDocument;
-use Morebec\DomainNormalizer\Denormalization\Configuration\DenormalizerConfiguration;
 use Morebec\DomainNormalizer\Denormalization\Denormalizer;
-use Morebec\DomainNormalizer\Normalization\Configuration\NormalizerConfiguration;
+use Morebec\DomainNormalizer\Mapper\MapperInterface;
 use Morebec\DomainNormalizer\Normalization\Normalizer;
-use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventDescriptorNormalizationFactory;
-use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventNormalizationFactory;
+use Morebec\Orkestra\Adapter\MongoDB\EventPersistence\EventTypeRegistry;
 use Morebec\Orkestra\EventSourcing\EventStore\EventDescriptor;
 use Morebec\Orkestra\EventSourcing\EventStore\EventStoreInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\EventStreamVersionMismatchException;
@@ -29,22 +27,28 @@ class MongoDBEventStore implements EventStoreInterface
     /** @var Denormalizer */
     private $denormalizer;
 
-    public function __construct(MongoDBClient $client)
-    {
+    /**
+     * @var MapperInterface
+     */
+    private $mapper;
+    /**
+     * @var EventTypeRegistry
+     */
+    private $eventTypeRegistry;
+
+    public function __construct(
+        MongoDBClient $client,
+        MapperInterface $mapper,
+        EventTypeRegistry $eventTypeRegistry
+    ) {
         $this->eventsCollection = $client->getCollection('event_store');
 
-        // TODO Add Indexes for version and stream fields
+        $this->eventsCollection->createIndex(['version' => 1]);
+        $this->eventsCollection->createIndex(['stream' => 1]);
 
-        // Normalization
-        $normalizerConfiguration = new NormalizerConfiguration();
-        $normalizerConfiguration->registerDefinition(EventNormalizationFactory::getNormalizationDefinition());
-        $normalizerConfiguration->registerDefinition(EventDescriptorNormalizationFactory::getNormalizationDefinition());
-        $this->normalizer = new Normalizer($normalizerConfiguration);
-
-        $denormalizerConfiguration = new DenormalizerConfiguration();
-        $denormalizerConfiguration->registerDefinition(EventNormalizationFactory::getDenormalizationDefinition());
-        $denormalizerConfiguration->registerDefinition(EventDescriptorNormalizationFactory::getDenormalizationDefinition());
-        $this->denormalizer = new Denormalizer($denormalizerConfiguration);
+        $this->mapper = $mapper;
+        $this->configureMapper($this->mapper);
+        $this->eventTypeRegistry = $eventTypeRegistry;
     }
 
     /**
@@ -64,7 +68,7 @@ class MongoDBEventStore implements EventStoreInterface
         foreach ($events as $event) {
             $eventVersion++;
 
-            $data = $this->normalizer->normalize($event);
+            $data = $this->convertEventToData($event);
 
             $data['stream'] = $streamName;
             $data['version'] = $eventVersion;
@@ -218,7 +222,7 @@ class MongoDBEventStore implements EventStoreInterface
         }
 
         /** @var EventDescriptor $latest */
-        $latest = $this->denormalizer->denormalize($data, EventDescriptor::class);
+        $latest = $this->convertDataToEvent($data);
 
         return $latest;
     }
@@ -249,5 +253,29 @@ class MongoDBEventStore implements EventStoreInterface
         }
 
         return $data['version'];
+    }
+
+    protected function configureMapper(MapperInterface $mapper)
+    {
+    }
+
+    /**
+     * @param EventDescriptor $event
+     * @return array
+     */
+    protected function convertEventToData(EventDescriptor $event): array
+    {
+        return $this->mapper->extract($event);
+    }
+
+    /**
+     * @param array $data
+     * @return mixed
+     */
+    protected function convertDataToEvent(array $data)
+    {
+        $eventType = $data['eventType'];
+        $eventClass = $this->eventTypeRegistry->resolveFqn($eventType);
+        return $this->mapper->hydrate($eventClass, $data);
     }
 }
