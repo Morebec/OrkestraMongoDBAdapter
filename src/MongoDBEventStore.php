@@ -151,7 +151,7 @@ class MongoDBEventStore implements EventStoreInterface
         $data = $this->eventsCollection->find($filter, $options);
 
         foreach ($data as $d) {
-            yield $this->denormalizer->denormalize($d, EventDescriptor::class);
+            yield $this->convertDataToEvent($d);
         }
     }
 
@@ -179,7 +179,7 @@ class MongoDBEventStore implements EventStoreInterface
         $data = $this->eventsCollection->find($filter, $options);
 
         foreach ($data as $d) {
-            yield $this->denormalizer->denormalize($d, EventDescriptor::class);
+            yield $this->convertDataToEvent($d);
         }
     }
 
