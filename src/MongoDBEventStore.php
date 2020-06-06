@@ -12,7 +12,7 @@ use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventDescriptorNormalizationF
 use Morebec\Orkestra\Adapter\MongoDB\Normalization\EventNormalizationFactory;
 use Morebec\Orkestra\EventSourcing\EventStore\EventDescriptor;
 use Morebec\Orkestra\EventSourcing\EventStore\EventStoreInterface;
-use Morebec\Orkestra\EventSourcing\EventStreamVersionMismatchException;
+use Morebec\Orkestra\EventSourcing\EventStore\EventStreamVersionMismatchException;
 
 class MongoDBEventStore implements EventStoreInterface
 {
