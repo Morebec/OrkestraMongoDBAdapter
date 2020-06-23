@@ -10,6 +10,7 @@
     ],
     "license": "MIT",
     "require": {
+        "ext-mongodb": "*",
         "mongodb/mongodb": "^1.6",
         "doctrine/mongodb-odm": "^2.0",
         "morebec/orkestra": "dev-dev",
