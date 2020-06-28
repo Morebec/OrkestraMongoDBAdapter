@@ -132,7 +132,7 @@ abstract class MongoDBAggregateRootRepository
     /**
      * Converts an aggregate root to an array.
      */
-    private function convertAggregateRootToData($aggregateRoot): array
+    protected function convertAggregateRootToData($aggregateRoot): array
     {
         $data = $this->mapper->extract($aggregateRoot);
         $data['_id'] = $data['id'];
