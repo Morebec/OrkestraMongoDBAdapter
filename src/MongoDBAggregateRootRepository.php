@@ -122,7 +122,7 @@ abstract class MongoDBAggregateRootRepository
     protected function convertDataToAggregateRoot(?array $data)
     {
         if ($data) {
-            $data['id'] = $data['_id'];
+            $data[$this->getAggregateRootIdDataKey()] = $data['_id'];
             unset($data['_id']);
         }
 
@@ -135,9 +135,19 @@ abstract class MongoDBAggregateRootRepository
     protected function convertAggregateRootToData($aggregateRoot): array
     {
         $data = $this->mapper->extract($aggregateRoot);
-        $data['_id'] = $data['id'];
-        unset($data['id']);
+        $data['_id'] = $data[$this->getAggregateRootIdDataKey()];
+        unset($data[$this->getAggregateRootIdDataKey()]);
 
         return $data;
+    }
+
+    /**
+     * Returns the name of the index in the data array containing the id
+     * of the aggregate root
+     * @return string
+     */
+    protected function getAggregateRootIdDataKey(): string
+    {
+        return 'id';
     }
 }
