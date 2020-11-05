@@ -12,9 +12,7 @@
     "require": {
         "ext-mongodb": "*",
         "mongodb/mongodb": "^1.6",
-        "doctrine/mongodb-odm": "^2.0",
-        "morebec/orkestra": "dev-dev",
-        "morebec/domain-normalizer": "dev-dev"
+        "morebec/orkestra": "^1.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
@@ -22,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Morebec\\Orkestra\\Adapter\\MongoDB\\": "src/"
+            "Morebec\\OrkestraMongoDbAdapter\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Test\\Morebec\\Orkestra\\Adapter\\MongoDB\\": "src/"
+            "Test\\Morebec\\OrkestraMongoDbAdapter\\": "tests/"
         }
     }
 }

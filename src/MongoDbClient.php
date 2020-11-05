@@ -1,6 +1,7 @@
 <?php
 
-namespace Morebec\Orkestra\Adapter\MongoDB;
+
+namespace Morebec\OrkestraMongoDbAdapter;
 
 use MongoDB\Client;
 use MongoDB\Collection;
@@ -9,7 +10,10 @@ use MongoDB\Driver\ReadPreference;
 use MongoDB\Driver\Session;
 use MongoDB\Driver\WriteConcern;
 
-class MongoDBClient
+/**
+ * Simple wrapper around the MongoClient to simplify its use.
+ */
+class MongoDbClient
 {
     /**
      * @var Client
@@ -22,7 +26,7 @@ class MongoDBClient
     private $databaseName;
 
     /**
-     * @var Session
+     * @var Session|null
      */
     private $session;
 
@@ -64,5 +68,21 @@ class MongoDBClient
     {
         $this->session->abortTransaction();
         $this->session = null;
+    }
+
+    /**
+     * @return Session
+     */
+    public function getSession(): ?Session
+    {
+        return $this->session;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getRawClient(): Client
+    {
+        return $this->client;
     }
 }
