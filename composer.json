@@ -13,7 +13,7 @@
         "ext-mongodb": "*",
         "mongodb/mongodb": "^1.6",
         "doctrine/mongodb-odm": "^2.0",
-        "morebec/orkestra": "dev-dev",
+        "morebec/orkestra": "0.*",
         "morebec/domain-normalizer": "dev-dev"
     },
     "require-dev": {
