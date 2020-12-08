@@ -83,4 +83,24 @@ class MongoDbProjectorStateStorage implements ProjectorStateStorageInterface
             ['upsert' => true]
         );
     }
+
+    public function isBroken(ProjectorInterface $projector): bool
+    {
+        $data = $this->collection->findOne(['_id' => $projector::getTypeName()]);
+        if (!$projector) {
+            return false;
+        }
+
+        return $data['state'] === 'BROKEN';
+    }
+
+    public function isRunning(ProjectorInterface $projector): bool
+    {
+        $data = $this->collection->findOne(['_id' => $projector::getTypeName()]);
+        if (!$projector) {
+            return false;
+        }
+
+        return $data['state'] === 'RUNNING';
+    }
 }
