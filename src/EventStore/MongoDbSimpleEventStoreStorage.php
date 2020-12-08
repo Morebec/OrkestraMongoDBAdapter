@@ -134,23 +134,24 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
     private function readStream(int $direction, EventStreamIdInterface $streamId, ?EventIdInterface $eventId, int $limit): StreamedEventCollectionInterface
     {
         // First ensure stream exists
-        if (!$this->getStream($streamId)) {
+        $isGlobalStream = $streamId->isEqualTo(SimpleEventStore::getGlobalStreamId());
+        if (!$this->getStream($streamId) && !$isGlobalStream) {
             throw new StreamNotFoundException($streamId);
         }
-        
+
         // We can either read from the global stream (virtual) or an actual stream.
         // We can either read from a specific event or none.
-        $event = $this->eventsCollection->findOne([EventDocument::EVENT_ID_KEY => (string)$eventId]);
-
         $filter = [];
-
-        if ($event) {
-            $filter[EventDocument::PLAYHEAD_KEY] = [
-                ($direction === self::SORT_ASCENDING) ? '$gt' : '$lt'  => $event[EventDocument::PLAYHEAD_KEY]
-            ];
+        if ($eventId) {
+            $event = $this->eventsCollection->findOne([EventDocument::EVENT_ID_KEY => (string)$eventId]);
+            if ($event) {
+                $filter[EventDocument::PLAYHEAD_KEY] = [
+                    ($direction === self::SORT_ASCENDING) ? '$gt' : '$lt'  => $event[EventDocument::PLAYHEAD_KEY]
+                ];
+            }
         }
 
-        if (!$streamId->isEqualTo(SimpleEventStore::getGlobalStreamId())) {
+        if (!$isGlobalStream) {
             $filter[EventDocument::STREAM_ID_KEY] = (string)$streamId;
         }
 
