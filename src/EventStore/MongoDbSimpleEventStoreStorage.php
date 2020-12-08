@@ -4,6 +4,7 @@ namespace Morebec\OrkestraMongoDbAdapter\EventStore;
 
 use InvalidArgumentException;
 use LogicException;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use MongoDB\Model\BSONDocument;
 use Morebec\Orkestra\DateTime\ClockInterface;
@@ -16,6 +17,7 @@ use Morebec\Orkestra\EventSourcing\EventStore\EventStreamInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\EventTypeInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\RecordedEventDescriptorInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\StreamedEventCollectionInterface;
+use Morebec\Orkestra\EventSourcing\EventStore\StreamNotFoundException;
 use Morebec\Orkestra\EventSourcing\SimpleEventStore\CatchupEventStoreSubscription;
 use Morebec\Orkestra\EventSourcing\SimpleEventStore\DomainEventDescriptor;
 use Morebec\Orkestra\EventSourcing\SimpleEventStore\EventId;
@@ -99,11 +101,21 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
         UpcasterChain $upcasterChain
     ) {
         $this->mongoDBClient = $client;
-        $this->eventsCollection = $this->mongoDBClient->getCollection(self::EVENTS_COLLECTION_NAME);
+        $this->eventsCollection = $this->mongoDBClient->getCollection(self::EVENTS_COLLECTION_NAME)->withOptions([
+            'typeMap' => [
+                'root' => 'array',
+                'document' => 'array'
+            ]
+        ]);
         $this->eventsCollection->createIndex([EventDocument::STREAM_VERSION_KEY => 1]);
         $this->eventsCollection->createIndex([EventDocument::STREAM_ID_KEY => 1]);
 
-        $this->subscriptionsCollection = $this->mongoDBClient->getCollection(self::SUBSCRIPTIONS_COLLECTION_NAME);
+        $this->subscriptionsCollection = $this->mongoDBClient->getCollection(self::SUBSCRIPTIONS_COLLECTION_NAME)->withOptions([
+            'typeMap' => [
+                'root' => 'array',
+                'document' => 'array'
+            ]
+        ]);
         $this->domainMessageNormalizer = $domainMessageNormalizer;
         $this->upcasterChain = $upcasterChain;
         $this->clock = $clock;
@@ -123,7 +135,7 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
     {
         // We can either read from the global stream (virtual) or an actual stream.
         // We can either read from a specific event or none.
-        $event = $this->eventsCollection->findOne([EventDocument::EVENT_ID_KEY => (string)$eventId], ['typeMap' => $this->getTypeMapOption()]);
+        $event = $this->eventsCollection->findOne([EventDocument::EVENT_ID_KEY => (string)$eventId]);
 
         $filter = [];
 
@@ -144,9 +156,6 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
             'sort' => [EventDocument::PLAYHEAD_KEY => $direction],
 
             'limit' => $limit,
-
-            // Convert BSON documents to PHP Assoc Array
-            'typeMap' => $this->getTypeMapOption(),
         ];
 
         $data = $this->eventsCollection->find($filter, $options);
@@ -159,6 +168,10 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
                 $datum[EventDocument::EVENT_PAYLOAD_KEY] = $event->data;
                 $events[] = $this->denormalizeRecordedEventDescriptor($datum);
             }
+        }
+        
+        if (!$data) {
+            throw new StreamNotFoundException($streamId);
         }
 
         return new StreamedEventCollection($streamId, $events);
@@ -179,10 +192,7 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
         $options = [
             // Sort by descending so the first event found would be the one with the highest version number which
             // Would correspond to the stream's version.
-            'sort' => ['version' => self::SORT_DESCENDING],
-
-            // Convert BSON documents to PHP Assoc Array
-            'typeMap' => $this->getTypeMapOption(),
+            'sort' => [EventDocument::EVENT_VERSION_KEY => self::SORT_DESCENDING],
         ];
 
         $data = $this->eventsCollection->findOne($filter, $options);
@@ -220,7 +230,8 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
                 EventDocument::EVENT_TYPE_KEY => (string) $eventDescriptor->getEventType(),
                 EventDocument::EVENT_PAYLOAD_KEY => $eventData,
                 EventDocument::PLAYHEAD_KEY => $this->clock->now()->getMillisTimestamp(),
-                EventDocument::EVENT_VERSION_KEY => $eventIsVersioned ? $event::getMessageVersion() : 0
+                EventDocument::EVENT_VERSION_KEY => $eventIsVersioned ? $event::getMessageVersion() : 0,
+                EventDocument::EVENT_RECORDED_AT_KEY => new UTCDateTime($this->clock->now()->getMillisTimestamp())
             ];
         }
 
@@ -235,8 +246,7 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
     {
         /** @var BSONDocument $data */
         $data = $this->subscriptionsCollection->findOne(
-            [SubscriptionDocument::ID_KEY => (string) $subscriptionId],
-            ['typeMap' => $this->getTypeMapOption()]
+            [SubscriptionDocument::ID_KEY => (string) $subscriptionId]
         );
 
         if (!$data) {
@@ -343,17 +353,6 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
             EventStreamId::fromString($data[EventDocument::STREAM_ID_KEY]),
             EventStreamVersion::fromInt($data[EventDocument::STREAM_VERSION_KEY])
         );
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getTypeMapOption(): array
-    {
-        return [
-            'document' => 'array',
-            'root' => 'array',
-        ];
     }
 
     /**
