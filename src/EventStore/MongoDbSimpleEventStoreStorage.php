@@ -133,6 +133,11 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
 
     private function readStream(int $direction, EventStreamIdInterface $streamId, ?EventIdInterface $eventId, int $limit): StreamedEventCollectionInterface
     {
+        // First ensure stream exists
+        if (!$this->getStream($streamId)) {
+            throw new StreamNotFoundException($streamId);
+        }
+        
         // We can either read from the global stream (virtual) or an actual stream.
         // We can either read from a specific event or none.
         $event = $this->eventsCollection->findOne([EventDocument::EVENT_ID_KEY => (string)$eventId]);
@@ -168,10 +173,6 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
                 $datum[EventDocument::EVENT_PAYLOAD_KEY] = $event->data;
                 $events[] = $this->denormalizeRecordedEventDescriptor($datum);
             }
-        }
-        
-        if (!$data) {
-            throw new StreamNotFoundException($streamId);
         }
 
         return new StreamedEventCollection($streamId, $events);
