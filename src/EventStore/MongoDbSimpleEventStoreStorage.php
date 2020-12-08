@@ -233,7 +233,7 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
                 EventDocument::EVENT_PAYLOAD_KEY => $eventData,
                 EventDocument::PLAYHEAD_KEY => $this->clock->now()->getMillisTimestamp(),
                 EventDocument::EVENT_VERSION_KEY => $eventIsVersioned ? $event::getMessageVersion() : 0,
-                EventDocument::EVENT_RECORDED_AT_KEY => new UTCDateTime($this->clock->now()->getMillisTimestamp())
+                EventDocument::EVENT_RECORDED_AT_KEY => new UTCDateTime($this->clock->now()->getTimestamp() * 1000)
             ];
         }
 
