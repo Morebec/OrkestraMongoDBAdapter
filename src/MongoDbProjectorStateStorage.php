@@ -87,7 +87,7 @@ class MongoDbProjectorStateStorage implements ProjectorStateStorageInterface
     public function isBroken(ProjectorInterface $projector): bool
     {
         $data = $this->collection->findOne(['_id' => $projector::getTypeName()]);
-        if (!$projector) {
+        if (!$data) {
             return false;
         }
 
@@ -97,7 +97,7 @@ class MongoDbProjectorStateStorage implements ProjectorStateStorageInterface
     public function isRunning(ProjectorInterface $projector): bool
     {
         $data = $this->collection->findOne(['_id' => $projector::getTypeName()]);
-        if (!$projector) {
+        if (!$data) {
             return false;
         }
 
