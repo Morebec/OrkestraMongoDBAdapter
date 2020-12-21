@@ -36,9 +36,7 @@ use Morebec\Orkestra\EventSourcing\Upcasting\UpcasterChain;
 use Morebec\Orkestra\Messaging\Event\DomainEventInterface;
 use Morebec\Orkestra\Messaging\Normalization\DomainMessageNormalizerInterface;
 use Morebec\Orkestra\Messaging\VersionedDomainMessageInterface;
-use Morebec\OrkestraMongoDbAdapter\EventStore\EventDocument;
 use Morebec\OrkestraMongoDbAdapter\MongoDbClient;
-use Morebec\OrkestraMongoDbAdapter\EventStore\SubscriptionDocument;
 use RuntimeException;
 
 /**
