@@ -349,11 +349,15 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
             new EventMetadata($metadata)
         );
 
+        /** @var UTCDateTime $recordedAt */
+        $recordedAt = $data[EventDocument::EVENT_RECORDED_AT_KEY];
+        $data[EventDocument::EVENT_RECORDED_AT_KEY] = new DateTime($recordedAt->toDateTime());
+
         return RecordedEventDescriptor::fromEventDescriptor(
             $descriptor,
             EventStreamId::fromString($data[EventDocument::STREAM_ID_KEY]),
             EventStreamVersion::fromInt($data[EventDocument::STREAM_VERSION_KEY]),
-            new DateTime($data[EventDocument::EVENT_RECORDED_AT_KEY])
+            $data[EventDocument::EVENT_RECORDED_AT_KEY]
         );
     }
 
