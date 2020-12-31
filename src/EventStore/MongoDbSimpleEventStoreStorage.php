@@ -8,6 +8,7 @@ use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use MongoDB\Model\BSONDocument;
 use Morebec\Orkestra\DateTime\ClockInterface;
+use Morebec\Orkestra\DateTime\DateTime;
 use Morebec\Orkestra\EventSourcing\EventStore\CatchupEventStoreSubscriptionInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\EventIdInterface;
 use Morebec\Orkestra\EventSourcing\EventStore\EventStoreSubscriptionIdInterface;
@@ -265,7 +266,7 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
         );
     }
 
-    public function startSubscription(EventStoreSubscriptionInterface $subscription)
+    public function startSubscription(EventStoreSubscriptionInterface $subscription): void
     {
         $document = [
             SubscriptionDocument::ID_KEY => (string) $subscription->getId(),
@@ -351,7 +352,8 @@ class MongoDbSimpleEventStoreStorage implements SimpleEventStorageReaderInterfac
         return RecordedEventDescriptor::fromEventDescriptor(
             $descriptor,
             EventStreamId::fromString($data[EventDocument::STREAM_ID_KEY]),
-            EventStreamVersion::fromInt($data[EventDocument::STREAM_VERSION_KEY])
+            EventStreamVersion::fromInt($data[EventDocument::STREAM_VERSION_KEY]),
+            new DateTime($data[EventDocument::EVENT_RECORDED_AT_KEY])
         );
     }
 
